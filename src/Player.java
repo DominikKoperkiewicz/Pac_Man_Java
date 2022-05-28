@@ -13,8 +13,15 @@ public class Player {
 	
 	public int getX() { return x; }
 	public int getY() { return y; }
+	public int getDirection() { return direction; }
 	
 	public void update(Game game) {
+		if(x < 5) { x = 20*26; }
+		if(x > 20*26) { x = 5; }
+		if(game.getMap()[(y+10)/20][(x+10)/20] == 2) {
+			game.eat((y+10)/20,(x+10)/20);
+		}
+		
 		switch(Display.wanted_dir) {
 		case 0: 	
 			if(game.getMap()[(y)/20][(x+19+speed)/20] != 1 && y % 20 == 0)
@@ -56,10 +63,10 @@ public class Player {
 			break;
 		}
 	}
-	/*
-	public void render(Graphics graphics) {
-		graphics.setColor(Color.yellow);
-		graphics.fillRect(x-10, y-10, x+10, y+10);
-	}*/
+
+	public void setPos(int X, int Y) {
+		this.x = X;
+		this.y = Y;
+	}
 	
 }

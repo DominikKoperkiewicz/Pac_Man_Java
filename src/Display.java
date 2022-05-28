@@ -9,9 +9,11 @@ public class Display extends JFrame implements KeyListener  {
 	private static final long serialVersionUID = 1L;
 	private Canvas canvas;
 	private int X_default = 120, Y_default=15;
-	public static int wanted_dir; 
+	private boolean reset = false;
+	public static int wanted_dir = 2; 
+	
 
-	private final short[][] map = 
+	private short[][] map = 
 			// 0 - puste pola,
 			// 1 - sciana,
 			// 2 - kropki
@@ -25,10 +27,10 @@ public class Display extends JFrame implements KeyListener  {
 			{1,2,1,1,1,1,2,1,1,2,1,1,1,1,1,1,1,1,2,1,1,2,1,1,1,1,2,1},
 			{1,2,2,2,2,2,2,1,1,2,2,2,2,1,1,2,2,2,2,1,1,2,2,2,2,2,2,1},
 			{1,1,1,1,1,1,2,1,1,1,1,1,0,1,1,0,1,1,1,1,1,2,1,1,1,1,1,1},
-			{0,0,0,0,0,1,2,1,1,1,1,1,0,1,1,0,1,1,1,1,1,2,1,0,0,0,0,0},
 			{0,0,0,0,0,1,2,1,1,0,0,0,0,0,0,0,0,0,0,1,1,2,1,0,0,0,0,0},
-			{1,1,1,1,1,1,2,1,1,0,1,1,1,0,0,1,1,1,0,1,1,2,1,1,1,1,1,1},
-			{0,0,0,0,0,0,2,0,0,0,1,0,0,0,0,0,0,1,0,0,0,2,1,0,0,0,0,0},
+			{0,0,0,0,0,1,2,1,1,0,1,1,0,0,0,0,1,1,0,1,1,2,1,0,0,0,0,0},
+			{1,1,1,1,1,1,2,1,1,0,1,0,0,0,0,0,0,1,0,1,1,2,1,1,1,1,1,1},
+			{0,0,0,0,0,0,2,0,0,0,1,0,0,0,0,0,0,1,0,0,0,2,0,0,0,0,0,0},
 			{1,1,1,1,1,1,2,1,1,0,1,1,1,1,1,1,1,1,0,1,1,2,1,1,1,1,1,1},
 			{0,0,0,0,0,1,2,1,1,0,0,0,0,0,0,0,0,0,0,1,1,2,1,0,0,0,0,0},
 			{1,1,1,1,1,1,2,1,1,0,1,1,1,1,1,1,1,1,0,1,1,2,1,1,1,1,1,1},
@@ -64,22 +66,36 @@ public class Display extends JFrame implements KeyListener  {
 
 	
 	public void render(Game game)
-	{
+	{		
 		BufferStrategy bufferStrategy = canvas.getBufferStrategy();
 		Graphics graphics = bufferStrategy.getDrawGraphics();
+
+		if(game.getLives() == 0) { //GAME OVER SCREEN
+			graphics.setColor(Color.black);
+			graphics.fillRect(0, 0, canvas.getWidth(), canvas.getHeight());
+			
+			graphics.setFont(new Font("TimesRoman", Font.PLAIN, 40));
+			graphics.setColor(Color.white);
+			graphics.drawString("HIGHSCORE ", 280, 90);
+			
+			graphics.setFont(new Font("TimesRoman", Font.PLAIN, 20));
+			graphics.drawString("Press R to reset ", 320, 490);
+			
+			graphics.dispose();
+			bufferStrategy.show();
+			
+			return;
+		}
 		
 		renderMap(game);
 		renderPlayer(game);
-		/*
-		Rectangle rectangle = game.getRectangle();
-		graphics.setColor(Color.red);
-		graphics.fillRect(
-				(int) rectangle.getX(), 
-				(int) rectangle.getY(), 
-				(int) rectangle.getWidth(), 
-				(int) rectangle.getHeight()
-				);
-		*/
+		renderGhosts(game);
+		graphics.setColor(Color.yellow);
+		for(int i = 0; i < game.getLives(); i++) {
+			graphics.fillRect(85, 550-i*30, 20, 20);
+		}
+		graphics.setColor(Color.white);
+		graphics.drawString("SCORE: " + game.getPoints(), 10, 20);
 		
 		graphics.dispose();
 		bufferStrategy.show();
@@ -120,7 +136,6 @@ public class Display extends JFrame implements KeyListener  {
 	}
 	
 	public void renderPlayer(Game game) {
-
 		BufferStrategy bufferStrategy = canvas.getBufferStrategy();
 		Graphics graphics = bufferStrategy.getDrawGraphics();
 		
@@ -130,9 +145,22 @@ public class Display extends JFrame implements KeyListener  {
 
 	}
 	
+	public void renderGhosts(Game game) {
+		Ghost[] ghosts = {game.getBlinky(), game.getPinky(), game.getInky(), game.getClyde()};
+		BufferStrategy bufferStrategy = canvas.getBufferStrategy();
+		Graphics graphics = bufferStrategy.getDrawGraphics();
+		
+		int size = 20;
+		for(Ghost ghost : ghosts) {
+			graphics.setColor(ghost.getColor());
+			graphics.fillRect(ghost.getX()+120, ghost.getY()+15, size, size);
+		}
+	}
+	
 	public short[][] getMap() { return map; }
 
-
+	public void setMap(int x, int y, short val) { map[x][y] = val; }
+	
 	@Override
 	public void keyTyped(KeyEvent e) {}
 
@@ -140,25 +168,66 @@ public class Display extends JFrame implements KeyListener  {
 	public void keyPressed(KeyEvent e) {
 		switch(e.getKeyCode()) {
 			case 37:
-				System.out.println("LEFT");
 				Display.wanted_dir = 2;
 				break;
 			case 38:
-				System.out.println("UP");
 				Display.wanted_dir = 1;
 				break;
 			case 39:
-				System.out.println("RIGHT");
 				Display.wanted_dir = 0;
 				break;
 			case 40:
-				System.out.println("DOWN");
 				Display.wanted_dir = 3;
 				break;
+			case 82:
+					this.setReset(true);
+				break;
 		};
-		
+		//System.out.println(e.getKeyCode());
 	}
 
 	@Override
 	public void keyReleased(KeyEvent e) {}
+	
+	public void setReset(boolean bool) {
+		reset = bool;
+	}
+	
+	public boolean getReset() { return reset; }
+	
+	public void resetMap() {
+		short[][] tmp = 	
+				// 0 - puste pola,
+				// 1 - sciana,
+				// 2 - kropki
+				{{1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1},
+				{1,2,2,2,2,2,2,2,2,2,2,2,2,1,1,2,2,2,2,2,2,2,2,2,2,2,2,1},
+				{1,2,1,1,1,1,2,1,1,1,1,1,2,1,1,2,1,1,1,1,1,2,1,1,1,1,2,1},
+				{1,2,1,1,1,1,2,1,1,1,1,1,2,1,1,2,1,1,1,1,1,2,1,1,1,1,2,1},
+				{1,2,1,1,1,1,2,1,1,1,1,1,2,1,1,2,1,1,1,1,1,2,1,1,1,1,2,1},
+				{1,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,1},
+				{1,2,1,1,1,1,2,1,1,2,1,1,1,1,1,1,1,1,2,1,1,2,1,1,1,1,2,1},
+				{1,2,1,1,1,1,2,1,1,2,1,1,1,1,1,1,1,1,2,1,1,2,1,1,1,1,2,1},
+				{1,2,2,2,2,2,2,1,1,2,2,2,2,1,1,2,2,2,2,1,1,2,2,2,2,2,2,1},
+				{1,1,1,1,1,1,2,1,1,1,1,1,0,1,1,0,1,1,1,1,1,2,1,1,1,1,1,1},
+				{0,0,0,0,0,1,2,1,1,0,0,0,0,0,0,0,0,0,0,1,1,2,1,0,0,0,0,0},
+				{0,0,0,0,0,1,2,1,1,0,1,1,0,0,0,0,1,1,0,1,1,2,1,0,0,0,0,0},
+				{1,1,1,1,1,1,2,1,1,0,1,0,0,0,0,0,0,1,0,1,1,2,1,1,1,1,1,1},
+				{0,0,0,0,0,0,2,0,0,0,1,0,0,0,0,0,0,1,0,0,0,2,0,0,0,0,0,0},
+				{1,1,1,1,1,1,2,1,1,0,1,1,1,1,1,1,1,1,0,1,1,2,1,1,1,1,1,1},
+				{0,0,0,0,0,1,2,1,1,0,0,0,0,0,0,0,0,0,0,1,1,2,1,0,0,0,0,0},
+				{1,1,1,1,1,1,2,1,1,0,1,1,1,1,1,1,1,1,0,1,1,2,1,1,1,1,1,1},
+				{1,2,2,2,2,2,2,2,2,2,2,2,2,1,1,2,2,2,2,2,2,2,2,2,2,2,2,1},
+				{1,2,1,1,1,1,2,1,1,1,1,1,2,1,1,2,1,1,1,1,1,2,1,1,1,1,2,1},
+				{1,2,1,1,1,1,2,1,1,1,1,1,2,1,1,2,1,1,1,1,1,2,1,1,1,1,2,1},
+				{1,2,2,2,1,1,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,1,1,2,2,2,1},
+				{1,1,1,2,1,1,2,1,1,2,1,1,1,1,1,1,1,1,2,1,1,2,1,1,2,1,1,1},
+				{1,1,1,2,1,1,2,1,1,2,1,1,1,1,1,1,1,1,2,1,1,2,1,1,2,1,1,1},
+				{1,2,2,2,2,2,2,1,1,2,2,2,2,1,1,2,2,2,2,1,1,2,2,2,2,2,2,1},
+				{1,2,1,1,1,1,1,1,1,1,1,1,2,1,1,2,1,1,1,1,1,1,1,1,1,1,2,1},
+				{1,2,1,1,1,1,1,1,1,1,1,1,2,1,1,2,1,1,1,1,1,1,1,1,1,1,2,1},
+				{1,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,1},
+				{1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1}};
+		map = tmp;
+	}
 }

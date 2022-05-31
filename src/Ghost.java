@@ -1,5 +1,4 @@
 import java.awt.Color;
-import java.lang.*;
 
 public abstract class Ghost implements Runnable{
 	int x;

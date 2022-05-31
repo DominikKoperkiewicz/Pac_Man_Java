@@ -19,10 +19,10 @@ public class Game {
 		display = new Display(width, heigth);
 		rectangle = new Rectangle(0, 0, 50, 50);
 		player = new Player();
-		blinky = new Blinky(20*13, 20*12);
-		pinky = new Pinky(20*14, 20*12);
-		inky = new Inky(20*13, 20*13);
-		clyde = new Clyde(20*14, 20*13);
+		blinky = new Blinky(20*13, 20*12, this);
+		pinky = new Pinky(20*14, 20*12, this);
+		inky = new Inky(20*13, 20*13, this);
+		clyde = new Clyde(20*14, 20*13, this);
 	}
 	
 	public Boolean update()
@@ -41,10 +41,10 @@ public class Game {
 		Thread inkyThread = new Thread(inky);
 		Thread clydeThread = new Thread(clyde);
 
-		blinky.update(this);
-		pinky.update(this);
-		inky.update(this);
-		clyde.update(this);
+		blinkyThread.start();
+		pinkyThread.start();
+		inkyThread.start();
+		clydeThread.start();
 
 		Ghost[] ghosts = {blinky, pinky, inky, clyde};
 		for(Ghost ghost : ghosts) {

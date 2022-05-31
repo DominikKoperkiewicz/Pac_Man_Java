@@ -171,7 +171,8 @@ public class Display extends JFrame implements KeyListener  {
 		
 		int size = 20;
 		graphics.setColor(Color.yellow);
-		graphics.fillRect(game.getPlayer().getX()+120, game.getPlayer().getY()+15, size, size);
+		int angle = (int)(30 * (1+Math.sin((double)System.currentTimeMillis() / 50 )));
+        graphics.fillArc(game.getPlayer().getX()+120, game.getPlayer().getY()+15, size, size, 90 * game.getPlayer().getDirection() - angle/2 + 30, 300 + angle );
 
 	}
 	
@@ -183,7 +184,14 @@ public class Display extends JFrame implements KeyListener  {
 		int size = 20;
 		for(Ghost ghost : ghosts) {
 			graphics.setColor(ghost.getColor());
-			graphics.fillRect(ghost.getX()+120, ghost.getY()+15, size, size);
+			graphics.fillRect(ghost.getX()+120, ghost.getY()+15+10, size, size/2);
+            graphics.fillOval(ghost.getX()+120, ghost.getY()+15, size, size);
+            graphics.setColor(Color.white);
+            graphics.fillOval(ghost.getX()+120+2, ghost.getY()+15+7, 7, 7);
+            graphics.fillOval(ghost.getX()+120+11, ghost.getY()+15+7, 7, 7);
+            graphics.setColor(Color.black);
+            graphics.fillOval(ghost.getX()+120+4, ghost.getY()+15+10, 3, 3);
+            graphics.fillOval(ghost.getX()+120+13, ghost.getY()+15+10, 3, 3);
 		}
 	}
 	

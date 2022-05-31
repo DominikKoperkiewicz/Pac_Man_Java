@@ -5,6 +5,7 @@ public class GameLoop implements Runnable
 	
 	private boolean running;
 	private final double updateRate = 1.0d/60.0d;
+	private boolean lost = true;
 	
 	private long nextStatTime;
 	private int fps, ups;
@@ -17,30 +18,42 @@ public class GameLoop implements Runnable
 	@Override
 	public void run() {
 		running = true;
-		double accumulator = 0;
-		long currentTime, lastUpdate = System.currentTimeMillis();
-		nextStatTime = System.currentTimeMillis() + 1000;
-		
-		while(running)
+		while(true)
 		{
-			currentTime = System.currentTimeMillis();
-			double lastRenderTimeInSeconds = (currentTime - lastUpdate) / 1000d;
-			accumulator += lastRenderTimeInSeconds;
-			lastUpdate = currentTime;
-			
-			if(accumulator >= updateRate)
+			double accumulator = 0;
+			long currentTime, lastUpdate = System.currentTimeMillis();
+			nextStatTime = System.currentTimeMillis() + 1000;
+			while(running)
 			{
-				while (accumulator > updateRate)
+				currentTime = System.currentTimeMillis();
+				double lastRenderTimeInSeconds = (currentTime - lastUpdate) / 1000d;
+				accumulator += lastRenderTimeInSeconds;
+				lastUpdate = currentTime;
+					
+				if(accumulator >= updateRate)
 				{
-					update();
-					accumulator -= updateRate;
+					while (accumulator > updateRate)
+					{
+						running = update();
+						accumulator -= updateRate;
+					}
+						
+				render();
 				}
-				
-			render();
+				printStats();
 			}
-			printStats();
+			if (lost)
+			{
+				renderGameOver();
+				lost = false;
+			}
+				
+			if (getReset()) 
+			{
+				running = true;
+				lost = true;
+			}
 		}
-		
 	}
 
 	private void printStats() 
@@ -56,10 +69,16 @@ public class GameLoop implements Runnable
 	}
 	
 	
-	private void update() 
+	private Boolean update() 
 	{
-		game.update();
+		Boolean result = game.update();
 		ups++;
+		return result;
+	}
+	
+	private void renderGameOver()
+	{
+		game.renderGameOver();
 	}
 
 	private void render() 
@@ -68,5 +87,9 @@ public class GameLoop implements Runnable
 		fps++;
 	}
 
+	private Boolean getReset()
+	{
+		return game.getReset();
+	}
 
 }

@@ -31,7 +31,7 @@ public class Game {
 			display.setReset(false);
 			points = 0;
 			this.resetPositions();
-			lives = 1;
+			lives = 3;
 			display.resetMap();
 		}
 		
